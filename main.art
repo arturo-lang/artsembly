@@ -1,16 +1,15 @@
-;==========================================
-; Artsembly :module
-; for Arturo
-;
-; @file: artsembly/main.art
-; @author: drkameleon
-;==========================================
-
 assemble: function [blk][
     opPush0:    from.hex "0x10"
     opStore0:   from.hex "0x30"
     opLoad0:    from.hex "0x50"
     opCall0:    from.hex "0x70"
+
+    opIAdd:     from.hex "0xA0"
+    opISub:     from.hex "0xA1"
+    opIMul:     from.hex "0xA2"
+    opIDiv:     from.hex "0xA3"
+    opIMod:     from.hex "0xA5"
+    opIPow:     from.hex "0xA6"
 
     opEnd:      from.hex "0x9B"
 
@@ -26,15 +25,26 @@ assemble: function [blk][
         return idx
     ]
 
-    simpleCommand: function [const,op][
+    commandWithConst: function [const,op][
         i: getIndexForConstant const
         'instrs ++ (op + i)
     ]
 
-    push:  function [x]-> simpleCommand x opPush0
-    store: function [x]-> simpleCommand x opStore0
-    load:  function [x]-> simpleCommand x opLoad0
-    call:  function [x]-> simpleCommand x opCall0
+    simpleCommand: function [op][
+        'instrs ++ op
+    ]
+
+    push:  function [x]-> commandWithConst x opPush0
+    store: function [x]-> commandWithConst x opStore0
+    load:  function [x]-> commandWithConst x opLoad0
+    call:  function [x]-> commandWithConst x opCall0
+
+    iadd:  function []-> simpleCommand opIAdd
+    isub:  function []-> simpleCommand opISub
+    imul:  function []-> simpleCommand opIMul
+    idiv:  function []-> simpleCommand opIDiv
+    imod:  function []-> simpleCommand opIMod
+    ipow:  function []-> simpleCommand opIPow
 
     do as.agnostic to :block blk
 
