@@ -1,0 +1,44 @@
+;==========================================
+; Artsembly :module
+; for Arturo
+;
+; @file: artsembly/main.art
+; @author: drkameleon
+;==========================================
+
+assemble: function [blk][
+    opPush0:    from.hex "0x10"
+    opStore0:   from.hex "0x30"
+    opLoad0:    from.hex "0x50"
+    opCall0:    from.hex "0x70"
+
+    opEnd:      from.hex "0x9B"
+
+    consts: new []
+    instrs: new []
+
+    getIndexForConstant: function [const][
+        idx: index consts const
+        if idx = ø [
+            'consts ++ const
+            idx: (size consts)-1
+        ]
+        return idx
+    ]
+
+    simpleCommand: function [const,op][
+        i: getIndexForConstant const
+        'instrs ++ (op + i)
+    ]
+
+    push:  function [x]-> simpleCommand x opPush0
+    store: function [x]-> simpleCommand x opStore0
+    load:  function [x]-> simpleCommand x opLoad0
+    call:  function [x]-> simpleCommand x opCall0
+
+    do as.agnostic to :block blk
+
+    'instrs ++ opEnd
+
+    return to :bytecode @[consts,instrs]
+]
