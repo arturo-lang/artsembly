@@ -1,4 +1,4 @@
 description: "Arturo VM Bytecode assembler"
-version: "0.2"
+version: "0.2.1"
 dependencies: []
 author: "Yanis Zafirópulos"
