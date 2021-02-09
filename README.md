@@ -11,7 +11,7 @@ do [
         ; print header
         push "This is a number game written in ArtSembly"
         call 'print
-        push "Let's go!"
+        push "Let's go!\n"
         call 'print
 
         ; get random number
@@ -20,23 +20,45 @@ do [
         call 'random
         store 'rnd
 
+        push 0
+        store 'attempt
+
         ; start the loop
         guessNumber:
-            ; get user's guess
-            push "Guess the number: "
-            call 'input
-            push :integer
-            call 'to
+            ; check if it's the first attempt
+            push 0
+            load 'attempt
 
-            ; compare with the secret number
-            load 'rnd
-            cmpeq 
+            ; if it is, jump right to main
+            cmpeq
+            jmpif main
+
+            ; else, print error message
+            push "Not correct :( Try again!\n"
+            call 'print
+
+            main:
+                ; increment attempt
+                push 'attempt
+                push 1
+                iadd
+                store 'attempt
+
+                ; get user's guess
+                push "Guess the number: "
+                call 'input
+                push :integer
+                call 'to
+
+                ; compare with the secret number
+                load 'rnd
+                cmpeq 
 
             ; if not found jump back
             jmpifnot guessNumber
 
         ; that was it!
-        push "Yes! You got it right!"
+        push "\n*** Yes! You got it right!\n"
         call 'print
     ]
 ]
@@ -47,10 +69,17 @@ do [
 ```bash
 This is a number game written in ArtSembly
 Let's go!
+
 Guess the number: 1
-Guess the number: 2
+Not correct :( Try again!
+
 Guess the number: 3
-Guess the number: 4
-Guess the number: 5
-Yes! You got it right!
+Not correct :( Try again!
+
+Guess the number: 6
+Not correct :( Try again!
+
+Guess the number: 2
+
+*** Yes! You got it right!
 ```
