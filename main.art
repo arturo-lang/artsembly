@@ -1,17 +1,34 @@
 assemble: function [blk][
-    opPush0:    from.hex "0x10"
-    opStore0:   from.hex "0x30"
-    opLoad0:    from.hex "0x50"
-    opCall0:    from.hex "0x70"
+    opConstI0:      from.hex "0x00"
+    opConstBT:      from.hex "0x0D"
+    opConstBF:      from.hex "0x0E"
+    opConstN:       from.hex "0x0F"
 
-    opIAdd:     from.hex "0xA0"
-    opISub:     from.hex "0xA1"
-    opIMul:     from.hex "0xA2"
-    opIDiv:     from.hex "0xA3"
-    opIMod:     from.hex "0xA5"
-    opIPow:     from.hex "0xA6"
+    opPush:         from.hex "0x2F"
+    opStore:        from.hex "0x4F"
+    opLoad:         from.hex "0x6F"
+    opCall:         from.hex "0x8F"
 
-    opEnd:      from.hex "0x9B"
+    opJump:         from.hex "0x97"
+    opJumpIf:       from.hex "0x98"
+    opJumpIfNot:    from.hex "0x99"
+    opEnd:          from.hex "0x9B"
+
+    opIAdd:         from.hex "0xA0"
+    opISub:         from.hex "0xA1"
+    opIMul:         from.hex "0xA2"
+    opIDiv:         from.hex "0xA3"
+    opIMod:         from.hex "0xA5"
+    opIPow:         from.hex "0xA6"
+
+    opEq:           from.hex "0xB0"
+    opNe:           from.hex "0xB1"
+    opGt:           from.hex "0xB2"
+    opGe:           from.hex "0xB3"
+    opLt:           from.hex "0xB4"
+    opLe:           from.hex "0xB5"
+
+    cmdMargin:  from.hex "0x1F"
 
     consts: new []
     instrs: new []
@@ -20,35 +37,79 @@ assemble: function [blk][
         idx: index consts const
         if idx = ø [
             'consts ++ const
-            idx: (size consts)-1
+            idx: dec size consts
         ]
         return idx
     ]
 
-    commandWithConst: function [const,op][
+    addInstruction: function [ins][
+        'instrs ++ ins
+        return size instrs
+    ]
+
+    addCommand: function [const,op][
         i: getIndexForConstant const
-        'instrs ++ (op + i)
+        if? i =< 30 -> addInstruction (op - cmdMargin) + i
+        else [
+            addInstruction i
+            addInstruction op
+        ]
     ]
 
-    simpleCommand: function [op][
-        'instrs ++ op
+    push:  function [x][
+        case [(type x)=]
+            when? [:integer] [
+                if? and? x>=0 x=<10 -> addInstruction opConstI0 + x
+                else -> addCommand x opPush
+            ]
+            when? [:boolean] [
+                if? x -> addInstruction opConstBT
+                else -> addInstruction opConstBF
+            ]
+            when? [:null] [
+                addInstruction opConstN
+            ]
+            else [
+                addCommand x opPush
+            ]      
+        return dec size instrs
+    ]
+    store: function [x]-> addCommand x opStore
+    load:  function [x]-> addCommand x opLoad
+    call:  function [x]-> addCommand x opCall
+
+    iadd:  function []-> addInstruction opIAdd
+    isub:  function []-> addInstruction opISub
+    imul:  function []-> addInstruction opIMul
+    idiv:  function []-> addInstruction opIDiv
+    imod:  function []-> addInstruction opIMod
+    ipow:  function []-> addInstruction opIPow
+
+    cmpeq: function []-> addInstruction opEq
+    cmpne: function []-> addInstruction opNe
+    cmpgt: function []-> addInstruction opGt
+    cmpge: function []-> addInstruction opGe
+    cmplt: function []-> addInstruction opLt
+    cmple: function []-> addInstruction opLe
+
+    jmp:   function [x][
+        addInstruction opJump
+        addInstruction var x
     ]
 
-    push:  function [x]-> commandWithConst x opPush0
-    store: function [x]-> commandWithConst x opStore0
-    load:  function [x]-> commandWithConst x opLoad0
-    call:  function [x]-> commandWithConst x opCall0
+    jmpif: function [x][
+        addInstruction opJumpIf
+        addInstruction var x
+    ]
 
-    iadd:  function []-> simpleCommand opIAdd
-    isub:  function []-> simpleCommand opISub
-    imul:  function []-> simpleCommand opIMul
-    idiv:  function []-> simpleCommand opIDiv
-    imod:  function []-> simpleCommand opIMod
-    ipow:  function []-> simpleCommand opIPow
+    jmpifnot: function [x][
+        addInstruction opJumpIfNot
+        addInstruction var x
+    ]
 
-    do as.agnostic to :block blk
+    do as.agnostic blk
 
     'instrs ++ opEnd
-
+    inspect @[consts,instrs]
     return to :bytecode @[consts,instrs]
 ]
