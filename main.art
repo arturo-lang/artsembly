@@ -56,6 +56,22 @@ assemble: function [blk][
         ]
     ]
 
+    goToLabel: function [op,lbl][
+        addInstruction op
+
+        if? set? lbl -> addInstruction var lbl
+        else -> addInstruction to :string lbl
+    ]
+
+    postprocess: function [][
+        loop.with: 'i instrs 'instr [
+            if in? instr @[opJump opJumpIf opJumpIfNot][
+                if string? get instrs i+1 
+                    -> set instrs i+1 var get instrs i+1
+            ]
+        ]
+    ]
+
     push:  function [x][
         case [(type x)=]
             when? [:integer] [
@@ -92,24 +108,15 @@ assemble: function [blk][
     cmplt: function []-> addInstruction opLt
     cmple: function []-> addInstruction opLe
 
-    jmp:   function [x][
-        addInstruction opJump
-        addInstruction var x
-    ]
+    jmp:        function [x]-> goToLabel opJump x
+    jmpif:      function [x]-> goToLabel opJumpIf x
+    jmpifnot:   function [x]-> goToLabel opJumpIfNot x
 
-    jmpif: function [x][
-        addInstruction opJumpIf
-        addInstruction var x
-    ]
-
-    jmpifnot: function [x][
-        addInstruction opJumpIfNot
-        addInstruction var x
-    ]
-
-    do as.agnostic blk
+    do.import as.agnostic blk
 
     'instrs ++ opEnd
-    inspect @[consts,instrs]
+
+    postprocess
+    
     return to :bytecode @[consts,instrs]
 ]
