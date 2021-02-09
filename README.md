@@ -7,36 +7,50 @@ Arturo VM Bytecode assembler - as an Arturo module
 do.import module 'artsembly
 
 do [
-    do assemble {
-        push "What is your name? "
-        call 'input
-        store 'name
-        push "!"
-        load 'name
-        call 'append
-        push "Hello "
-        call 'append
+    do assemble [
+        ; print header
+        push "This is a number game written in ArtSembly"
         call 'print
-        push "Now, let's play a bit with some numbers..."
+        push "Let's go!"
         call 'print
-        push 2
+
+        ; get random number
+        push 9
         push 1
-        iadd
+        call 'random
+        store 'rnd
+
+        ; start the loop
+        guessNumber:
+            ; get user's guess
+            push "Guess the number: "
+            call 'input
+            push :integer
+            call 'to
+
+            ; compare with the secret number
+            load 'rnd
+            cmpeq 
+
+            ; if not found jump back
+            jmpifnot guessNumber
+
+        ; that was it!
+        push "Yes! You got it right!"
         call 'print
-        push 2
-        push 1
-        isub
-        call 'print
-    }
+    ]
 ]
 ```
 
 **Output:**
 
 ```bash
-What is your name? John
-Hello John!
-Now, let's play a bit with some numbers...
-3
--1
+This is a number game written in ArtSembly
+Let's go!
+Guess the number: 1
+Guess the number: 2
+Guess the number: 3
+Guess the number: 4
+Guess the number: 5
+Yes! You got it right!
 ```
