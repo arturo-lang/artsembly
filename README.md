@@ -1,4 +1,4 @@
-# artsembly-module
+# ArtSembly
 Arturo VM Bytecode assembler - as an Arturo module
 
 ## Example 
