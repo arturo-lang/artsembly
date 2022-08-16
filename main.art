@@ -1,7 +1,7 @@
 assemble: function [blk][
     opConstI0:      from.hex "0x00"
-    opConstBT:      from.hex "0x0D"
-    opConstBF:      from.hex "0x0E"
+    opConstBT:      from.hex "0x0C"
+    opConstBF:      from.hex "0x0D"
     opConstN:       from.hex "0x0F"
 
     opPush:         from.hex "0x2F"
@@ -28,7 +28,7 @@ assemble: function [blk][
     opLt:           from.hex "0xB4"
     opLe:           from.hex "0xB5"
 
-    cmdMargin:  from.hex "0x1F"
+    cmdMargin:      from.hex "0x1F"
 
     consts: new []
     instrs: new []
@@ -49,7 +49,7 @@ assemble: function [blk][
 
     addCommand: function [const,op][
         i: getIndexForConstant const
-        if? i =< 30 -> addInstruction (op - cmdMargin) + i
+        if? i =< 29 -> addInstruction (op - cmdMargin) + i
         else [
             addInstruction i
             addInstruction op
@@ -59,15 +59,15 @@ assemble: function [blk][
     goToLabel: function [op,lbl][
         addInstruction op
 
-        if? set? lbl -> addInstruction var lbl
+        if? set? lbl -> addInstruction dec var lbl
         else -> addInstruction to :string lbl
     ]
 
     postprocess: function [][
         loop.with: 'i instrs 'instr [
             if in? instr @[opJump opJumpIf opJumpIfNot][
-                if string? get instrs i+1 
-                    -> set instrs i+1 var get instrs i+1
+                if string? instrs\[i+1] 
+                    -> instrs\[i+1]: var instrs\[i+1]
             ]
         ]
     ]
@@ -116,7 +116,13 @@ assemble: function [blk][
 
     'instrs ++ opEnd
 
+    inspect consts
+    inspect instrs
+
     postprocess
     
-    return to :bytecode @[consts,instrs]
+    return to :bytecode #[
+        const: consts
+        instructions: instrs
+    ]
 ]
