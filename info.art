@@ -1,4 +1,1 @@
-description: "Arturo VM Bytecode assembler"
-version: "0.2.1"
-dependencies: []
-author: "Yanis Zafirópulos"
+requires: [> 0.9.83]
