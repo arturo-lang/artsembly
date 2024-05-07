@@ -1,0 +1,218 @@
+;===============================================
+; ArtSembly
+;
+; Arturo VM Bytecode assembler
+; for Arturo
+;
+; MIT License
+; (c) 2024 Yanis Zafirópulos
+;-----------------------------------------------
+; @file src/artsembly.art
+;===============================================
+
+assemble: function [blk][
+    constants: []
+    instructions: []
+
+    opcodes: #.raw flatten map #./"opcodes.art" [k,v]-> @[k, from.hex v]
+    export opcodes
+
+    cmdMargin: from.hex "0x0E"
+
+    aliased: to [:literal][
+        add sub mul div fdiv mod pow neg
+        inc dec shl shr
+        get set
+        if unless switch while
+        return break continue
+        to 
+        array range
+        loop map select
+        size replace split join 
+        reverse append
+        print
+    ]
+
+    export module [
+        choose: function [what,cases][
+            else: what
+            loop @ cases [condition,action][
+                if what = condition [
+                    do action
+                    break
+                ]
+            ]
+        ]
+
+        getIndexForConstant: function [const][
+            if null? idx: <= index constants const [
+                'constants ++ const
+                idx: dec size constants
+            ]
+            return idx
+        ]
+
+        addInstruction: function [ins][
+            'instructions ++ ins
+            return size instructions
+        ]
+
+        addCommand: method [const,op][
+            i: \getIndexForConstant const
+            (i > 255)? [
+                \addInstruction i % 256
+                \addInstruction shr i 8
+                \addInstruction op + 1
+            ][
+                (i =< 13)? -> \addInstruction (op - cmdMargin) + i [
+                    \addInstruction i
+                    \addInstruction op
+                ]
+            ]
+        ]
+
+        goToLabel: method [lbl][
+            tgt: var lbl
+            curr: size instructions
+
+            (tgt < curr) ? [
+                \addInstruction opGoup
+                \addInstruction inc curr - tgt
+            ][
+                \addInstruction opGoto
+                \addInstruction tgt - curr
+            ]
+        ]
+
+        jumpToLabel: method [op,lbl][
+            \addInstruction op
+            (set? lbl)? [
+                tgt: var lbl
+                curr: size instructions
+                
+                \addInstruction tgt - curr
+            ][
+                \addInstruction to :string lbl
+            ]
+            
+        ]
+
+        postprocess: method.public [][
+            loop.with: 'i instructions 'instr [
+                if in? instr @[opJmpIf opJmpIfNot][
+                    if string? instructions\[i+1] ->
+                        instructions\[i+1]: dec dec (var instructions\[i+1]) - i
+                ]
+            ]
+        ]
+
+        push: method.public [x][
+            \choose type x [
+                :logical [
+                    x ? -> \addInstruction opConstBT
+                        -> \addInstruction opConstBF
+                ]
+                :integer [
+                    (between? x neg 1 15)? -> \addInstruction x + 1
+                                           -> \addCommand x opPush
+                ]
+                :floating [
+                    \choose x [
+                        neg 1.0 -> \addInstruction opConstF1M
+                        0.0     -> \addInstruction opConstF0
+                        1.0     -> \addInstruction opConstF1
+                        2.0     -> \addInstruction opConstF2
+                        else    -> \addCommand x opPush 
+                    ]
+                ]
+                
+                :string [
+                    (empty? x)? -> \addInstruction opConstS
+                                -> \addCommand x opPush
+                ]
+                :block [
+                    (empty? x)? -> \addInstruction opConstA
+                                -> \addCommand x opPush
+                ]
+                :dictionary [
+                    (empty? x)? -> \addInstruction opConstD
+                                -> \addCommand x opPush
+                ]
+                :null [
+                    \addInstruction opConstN
+                ]
+                else [
+                    \addCommand x opPush
+                ]
+            ]
+            return dec size instructions
+        ]
+
+        store: method.public [x][ \addCommand x opStore ]
+        load:  method.public [x][ \addCommand x opLoad ]
+        storl: method.public [x][ \addCommand x opStorl ]
+        call:  method.public [x][
+            (contains? aliased x)?
+                -> do [\addInstruction] ++ to :word "op" ++ capitalize to :string x
+                [
+                    \choose x [
+                        'equal?             -> \addInstruction opEq
+                        'notEqual?          -> \addInstruction opNe
+                        'greater?           -> \addInstruction opGt
+                        'greaterOrEqual?    -> \addInstruction opGe
+                        'less?              -> \addInstruction opLt
+                        'lessOrEqual?       -> \addInstruction opLe
+                        'not                -> \addInstruction opBNot
+                        'and                -> \addInstruction opBAnd
+                        'or                 -> \addInstruction opBOr
+                        'not?               -> \addInstruction opNot
+                        'and?               -> \addInstruction opAnd
+                        'or?                -> \addInstruction opOr?
+                        'dictionary         -> \addInstruction opDict
+                        'function           -> \addInstruction opFunc
+                        else                -> \addCommand x opCall
+                    ]
+                ]
+        ]
+        goto: method.public [x][ \goToLabel x ]
+        jmpIf: method.public [x][ \jumpToLabel opJmpIf x ]
+        jmpIfNot: method.public [x][ \jumpToLabel opJmpIfNot x ]
+        end: method.public [][ \addInstruction opEnd ]
+    ]!
+
+    do to :block blk
+
+    postprocess
+
+    'instructions ++ opEnd
+
+    return to :bytecode #[
+        data: constants
+        code: instructions
+    ]
+]
+
+;---------------------------
+; Testing
+;---------------------------
+
+if standalone? [
+    do assemble {
+        push 0
+        store 'x
+        theLoop:
+            load 'x
+            call 'print
+            load 'x
+            call 'inc
+            storl 'x
+            push 10
+            call 'equal?
+
+            jmpIf 'finished
+            goto 'theLoop
+        finished:
+            push "finished!"
+            call 'print
+    }
+]

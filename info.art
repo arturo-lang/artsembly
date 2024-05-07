@@ -1,1 +1,2 @@
+entry: {src/artsembly}
 requires: [> 0.9.83]
