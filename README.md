@@ -44,7 +44,7 @@ do assemble {
         push 5
         call 'equal?       ; x = 5
 
-        jmpIf 'finished    ; if x = 10 -> go to finished
+        jmpIf 'finished    ; if x = 5 -> go to finished
 
         goto 'theLoop      ; else -> go back up
 
