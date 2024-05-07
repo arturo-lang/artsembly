@@ -11,9 +11,23 @@
 
 --- 
 
+### Available commands
+
+
+| Name | Arguments | Description |
+|---|---|---|
+| `push` | :any | push a value onto the stack |
+| `store` | :literal, :string | store topmost stack item to given symbol |
+| `load` | :literal, :string | push given symbol value to stack |
+| `call` | :literal, :string | call given function by name |
+| `goto` | :literal, :string | go to given label |
+| `jmpIf` | :literal, :string | jump forward to given label if topmost stack value is true |
+| `jmpIfNot` | :literal, :string | jump forward to given label if topmost stack value is not true |
+
+
 ### Example 
 
-```red
+```arturo
 import "artsembly"!
 
 do assemble {
@@ -30,8 +44,8 @@ do assemble {
         store 'x           ; x: 1 + x
 
         load 'x
-        push 10
-        call 'equal?       ; x = 10
+        push 5
+        call 'equal?       ; x = 5
 
         jmpIf 'finished    ; if x = 10 -> go to finished
 
@@ -51,11 +65,6 @@ do assemble {
 2
 3
 4
-5
-6
-7
-8
-9
 finished!
 ```
 
