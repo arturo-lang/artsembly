@@ -11,21 +11,18 @@
 
 --- 
 
-### Available commands
+### What does this package do?
 
+This package features a bytecode "assembler" for the Arturo programming language. In a few words, it allows to write bytecode for the Arturo VM directly, only in a friendly, Assembly-style fashion.
 
-| Name | Arguments | Description |
-|---|---|---|
-| `push` | :any | push a value onto the stack |
-| `store` | :literal, :string | store topmost stack item to given symbol |
-| `load` | :literal, :string | push given symbol value to stack |
-| `call` | :literal, :string | call given function by name |
-| `goto` | :literal, :string | go to given label |
-| `jmpIf` | :literal, :string | jump forward to given label if topmost stack value is true |
-| `jmpIfNot` | :literal, :string | jump forward to given label if topmost stack value is not true |
+> [!WARNING]
+> This package is to be considered mostly an - adventurous - experiment, highlighting what is possible and is not meant to be neither a replacement of Arturo nor a 100% functional bytecode assembler that aims to cover everything!
 
+### How do I use it?
 
-### Example 
+All you have to do is `import` it and then pass a block (or text) of valid ArtSembly code. The returned value is always a Bytecode object, which means that you can either run it directly (via [`do`](https://arturo-lang.io/documentation/library/core/do/)) or manipulate it further, if you wish.
+
+#### Example 
 
 ```arturo
 import "artsembly"!
@@ -67,6 +64,21 @@ do assemble {
 4
 finished!
 ```
+
+### Available commands
+
+| Name | Arguments | Description |
+|---|---|---|
+| `push` | :any | push a value onto the stack |
+| `store` | :literal, :string | store topmost stack item to given symbol |
+| `load` | :literal, :string | push given symbol value to stack |
+| `call` | :literal, :string | call given function by name |
+| `goto` | :literal, :string | go to given label |
+| `jmpIf` | :literal, :string | jump forward to given label if topmost stack value is true |
+| `jmpIfNot` | :literal, :string | jump forward to given label if topmost stack value is not true |
+
+> [!TIP]
+> As highlighted in the example above, all commands listed here are to be used solely *within* an `assemble` call.
 
 <hr/>
 
