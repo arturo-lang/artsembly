@@ -59,6 +59,8 @@ do assemble {
 finished!
 ```
 
+<hr/>
+
 ### License
 
 MIT License
