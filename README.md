@@ -1,85 +1,84 @@
-# ArtSembly
-Arturo VM Bytecode assembler - as an Arturo module
+<h1 align="center">
+    ArtSembly
+</h1>
 
-## Example 
+<p align="center">
+     <i>Arturo VM Bytecode assembler for Arturo</i> 
+     <br><br>
+     <img src="https://img.shields.io/github/license/arturo-lang/grafito?style=for-the-badge">
+    <img src="https://img.shields.io/badge/language-Arturo-orange.svg?style=for-the-badge">
+</p>
+
+--- 
+
+### Example 
 
 ```red
-do.import module 'artsembly
+import "artsembly"!
 
-do [
-    do assemble [
-        ; print header
-        push "This is a number game written in ArtSembly"
-        call 'print
-        push "Let's go!\n"
+do assemble {
+    push 0                 ; x: 0
+    store 'x
+
+    theLoop:
+        load 'x            ; print x
         call 'print
 
-        ; get random number
-        push 9
+        load 'x
         push 1
-        call 'random
-        store 'rnd
+        call 'add
+        store 'x           ; x: 1 + x
 
-        push 0
-        store 'attempt
+        load 'x
+        push 10
+        call 'equal?       ; x = 10
 
-        ; start the loop
-        guessNumber:
-            ; check if it's the first attempt
-            push 0
-            load 'attempt
+        jmpIf 'finished    ; if x = 10 -> go to finished
 
-            ; if it is, jump right to main
-            cmpeq
-            jmpif main
+        goto 'theLoop      ; else -> go back up
 
-            ; else, print error message
-            push "Not correct :( Try again!\n"
-            call 'print
-
-            main:
-                ; increment attempt
-                push 'attempt
-                push 1
-                iadd
-                store 'attempt
-
-                ; get user's guess
-                push "Guess the number: "
-                call 'input
-                push :integer
-                call 'to
-
-                ; compare with the secret number
-                load 'rnd
-                cmpeq 
-
-            ; if not found jump back
-            jmpifnot guessNumber
-
-        ; that was it!
-        push "\n*** Yes! You got it right!\n"
-        call 'print
-    ]
-]
+    finished:
+        push "finished!"
+        call 'print        ; print "finished!"
+}
 ```
 
 **Output:**
 
 ```bash
-This is a number game written in ArtSembly
-Let's go!
-
-Guess the number: 1
-Not correct :( Try again!
-
-Guess the number: 3
-Not correct :( Try again!
-
-Guess the number: 6
-Not correct :( Try again!
-
-Guess the number: 2
-
-*** Yes! You got it right!
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+finished!
 ```
+
+### License
+
+MIT License
+
+Copyright (c) 2024 Yanis Zafirópulos
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
